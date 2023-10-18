@@ -46,7 +46,7 @@ class AlienInvasion:
 
         #Create an instance to store game statistics and create a score board
         self.score_board = Scoreboard(self)
-
+        self.status = ""
 
     def run_game(self):
         """ Start the main loop for the game """
@@ -58,6 +58,7 @@ class AlienInvasion:
                 self.ship.update()
                 self._update_bullets() 
                 self._update_aliens()
+                self._fire_bullet()
 
             self._update_screen()    
 
@@ -109,9 +110,19 @@ class AlienInvasion:
         self.stats.game_active = True       
 
 
+    def _show_screen(self,msg):
+        msg_font = pygame.font.Font(None, 80)
+        msg_text = msg_font.render(msg, True, self.settings.msg_color)
+        instructions_font = pygame.font.Font(None, 36)
+        instructions_text = instructions_font.render("Press M to restart and Esc to exit", True, self.settings.msg_color)
+        msg_text_rect = msg_text.get_rect(center=(self.settings.screen_width // 2, self.settings.screen_height // 2))
+        instructions_text_rect = instructions_text.get_rect(center=(self.settings.screen_width // 2, self.settings.screen_height - 40))
+        self.screen.fill(self.bg_color)  # Fill the screen with black
+        self.screen.blit(msg_text, msg_text_rect)
+        self.screen.blit(instructions_text, instructions_text_rect)
+        pygame.display.flip()
 
     
-
     """ Function to check key down events  """
     def _check_keydown_events(self,event):
         if event.key == pygame.K_RIGHT:
@@ -126,6 +137,11 @@ class AlienInvasion:
             self._fire_bullet()
         elif event.key == pygame.K_p:
             self.stats.game_active = True
+        elif event.key == pygame.K_m:
+            self.status = ""
+            self.play_button.draw_button()
+            pygame.mouse.set_visible(True)
+
 
     """ Function to check key up events  """
     def _check_keyup_events(self,event):
@@ -156,6 +172,10 @@ class AlienInvasion:
         collissions = pygame.sprite.groupcollide(self.bullets,self.aliens,True,True) 
         if not self.aliens:
             self._check_bullet_alien_collision()
+            if self.stats.level > self.settings.levels_limit:
+                self.status = "WON"
+                self.stats.game_active = False
+                
         if collissions:
             for aliens in collissions.values(): 
                 self.stats.score += self.settings.alien_points * len(aliens)
@@ -172,8 +192,6 @@ class AlienInvasion:
             #INcrease the level
             self.stats.level += 1
             self.score_board.prep_level()
-           
-
 
     def _update_aliens(self):
         """Check if aliens are at any edge before updating entire fleet"""
@@ -207,8 +225,8 @@ class AlienInvasion:
             #pause.
             sleep(0.5)
         else:
+            self.status = "LOST"
             self.stats.game_active = False
-            pygame.mouse.set_visible(True)
     
 
 
@@ -223,8 +241,8 @@ class AlienInvasion:
         #   Determine the number of rows of aliens that fit on the screen
         ship_height = self.ship.rect.height
         available_space_y = (self.settings.screen_height - (3 * alien_height) - ship_height)
-        number_rows = available_space_y // (2 * alien_height)
-
+        # number_rows = available_space_y // (2 * alien_height)
+        number_rows = self.stats.level + 1; 
         #   Creating the full fleet of aliens
         for row_number in range(number_rows):
             #   Creating first row of aliens
@@ -255,9 +273,10 @@ class AlienInvasion:
 
     def _change_fleet_direction(self):
         """ Drop the entire fleet and change fleet's direction  """
-        for alien in self.aliens.sprites():
-            alien.rect.y += self.settings.fleet_drop_speed
-        self.settings.fleet_direction *= -1
+        # for alien in self.aliens.sprites():
+        #     alien.rect.y += self.settings.fleet_drop_speed
+        # self.settings.fleet_direction *= -1
+        pass
 
 
     def _check_aliens_bottom(self):
@@ -267,12 +286,6 @@ class AlienInvasion:
             if alien.rect.bottom >= screen_rect.bottom:
                 self._ship_hit()
                 break
-
-        
-        
-
-
-
 
     def _update_screen(self):
         #   Update images on the screen, and flip to the new screen
@@ -287,7 +300,12 @@ class AlienInvasion:
 
         #Draw the play button if the game is inactive
         if not self.stats.game_active:
-            self.play_button.draw_button()
+            if self.status == "WON":
+                self._show_screen("Victory Achieved!")
+            elif self.status == "LOST":
+                self._show_screen("Game Over!")
+            else:
+                self.play_button.draw_button()
 
         #Draw the score information
         self.score_board.show_score()
