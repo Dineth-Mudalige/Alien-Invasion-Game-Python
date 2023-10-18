@@ -1,2 +1,4 @@
-vitualenv
-__pycache__
+vitualenv/
+__pycache__/
+.DS_Store
+
