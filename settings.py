@@ -34,7 +34,7 @@ class Settings:
         self.levels_limit = 3
 
     def initialize_dynamic_settings(self):
-        self.ship_speed = 1.5
+        self.ship_speed = 5
         self.bullet_speed = 1.2
         self.alien_speed = 0.02
 
