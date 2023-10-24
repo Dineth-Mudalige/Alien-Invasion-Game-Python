@@ -19,6 +19,9 @@ from button import Button
 
 from scoreboard import Scoreboard
 
+from pygame.locals import *
+
+    
 class AlienInvasion:
     """ Overall class to manage game assets and behavior """
     def __init__(self):
@@ -46,23 +49,19 @@ class AlienInvasion:
 
         #Create an instance to store game statistics and create a score board
         self.score_board = Scoreboard(self)
+        
         self.status = ""
 
     def run_game(self):
         """ Start the main loop for the game """
         while True:
             self._check_events()
-            
-            #Parts of the game that should run if game is active
             if self.stats.game_active:
                 self.ship.update()
                 self._update_bullets() 
                 self._update_aliens()
                 self._fire_bullet()
-
-            self._update_screen()    
-
-
+            self._update_screen()  
 
     def _check_events(self):
         """Respond to keypresses and mouse events"""
@@ -107,7 +106,7 @@ class AlienInvasion:
 
     """Function to start the game"""
     def _start_game(self):
-        self.stats.game_active = True       
+        self.stats.game_active = True
 
 
     def _show_screen(self,msg):
@@ -117,7 +116,7 @@ class AlienInvasion:
         instructions_text = instructions_font.render("Press M to restart and Esc to exit", True, self.settings.msg_color)
         msg_text_rect = msg_text.get_rect(center=(self.settings.screen_width // 2, self.settings.screen_height // 2))
         instructions_text_rect = instructions_text.get_rect(center=(self.settings.screen_width // 2, self.settings.screen_height - 40))
-        self.screen.fill(self.bg_color)  # Fill the screen with black
+        self.screen.fill(self.settings.bg_color)  # Fill the screen with black
         self.screen.blit(msg_text, msg_text_rect)
         self.screen.blit(instructions_text, instructions_text_rect)
         pygame.display.flip()
@@ -125,14 +124,16 @@ class AlienInvasion:
     
     """ Function to check key down events  """
     def _check_keydown_events(self,event):
-        if event.key == pygame.K_RIGHT:
-        #   Move the ship to the right
-            self.ship.moving_right = True
-        elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
+        if event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
             sys.exit()
         elif event.key == pygame.K_LEFT:
         #   Move the ship to the left
-            self.ship.moving_left = True   
+            self.ship.moving_left = True
+            print("Moving left")
+        elif event.key == pygame.K_RIGHT:
+        #   Move the ship to the right
+            self.ship.moving_right = True
+            print("Moving right")   
         elif event.key == pygame.K_SPACE:
             self._fire_bullet()
         elif event.key == pygame.K_p:
@@ -227,6 +228,7 @@ class AlienInvasion:
         else:
             self.status = "LOST"
             self.stats.game_active = False
+
     
 
 
@@ -312,10 +314,7 @@ class AlienInvasion:
 
         pygame.display.flip()
 
-
-
-
 if __name__ == '__main__':
-    #   Make a game instance and Run the game.
+    #   Make a game instance
     ai = AlienInvasion()
     ai.run_game()
