@@ -1,3 +1,8 @@
 pygame==2.5.0
 numpy==1.25.2
 keyboard==0.13.5
+explorepy==1.8.2
+pylsl==1.16.1
+scipy==1.11.3
+pynput==1.7.6
+matplotlib==3.8.0
