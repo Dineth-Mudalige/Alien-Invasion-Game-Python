@@ -21,6 +21,8 @@ from scoreboard import Scoreboard
 
 from pygame.locals import *
 
+import os
+
     
 class AlienInvasion:
     """ Overall class to manage game assets and behavior """
@@ -67,7 +69,7 @@ class AlienInvasion:
         """Respond to keypresses and mouse events"""
         for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    sys.exit()
+                    os._exit(0)
 
                 elif event.type == pygame.KEYDOWN:
                     self._check_keydown_events(event)
@@ -125,7 +127,7 @@ class AlienInvasion:
     """ Function to check key down events  """
     def _check_keydown_events(self,event):
         if event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
-            sys.exit()
+            os._exit(0)
         elif event.key == pygame.K_LEFT:
         #   Move the ship to the left
             self.ship.moving_left = True
@@ -174,7 +176,7 @@ class AlienInvasion:
         if not self.aliens:
             self._check_bullet_alien_collision()
             if self.stats.level > self.settings.levels_limit:
-                self.status = "WON"
+                self.status = self.settings.won
                 self.stats.game_active = False
                 
         if collissions:
@@ -226,7 +228,7 @@ class AlienInvasion:
             #pause.
             sleep(0.5)
         else:
-            self.status = "LOST"
+            self.status = self.settings.lost
             self.stats.game_active = False
 
     
@@ -302,9 +304,9 @@ class AlienInvasion:
 
         #Draw the play button if the game is inactive
         if not self.stats.game_active:
-            if self.status == "WON":
+            if self.status == self.settings.won:
                 self._show_screen("Victory Achieved!")
-            elif self.status == "LOST":
+            elif self.status == self.settings.lost:
                 self._show_screen("Game Over!")
             else:
                 self.play_button.draw_button()

@@ -33,8 +33,12 @@ class Settings:
         # Level limit of the game
         self.levels_limit = 3
 
+        # The values assigned to the String flags
+        self.won = "WON"
+        self.lost = "LOST"
+
     def initialize_dynamic_settings(self):
-        self.ship_speed = 5
+        self.ship_speed = 2
         self.bullet_speed = 1.2
         self.alien_speed = 0.02
 
@@ -43,6 +47,13 @@ class Settings:
 
         # A fleet_direction of 1 represents right movement, -1 represents left movement.
         self.fleet_direction = 1
+
+    def sensor_settings(self):
+        self.sampling_rate = 1000
+        self.channel_mask = "00001111"
+        self.buffer_size = 1000
+        self.device_mode = "_ExG"
+        self.num_active_channels = 4
 
 
 
