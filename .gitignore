@@ -1,4 +1,4 @@
-vitualenv/
+virtualenv/
 __pycache__/
 .DS_Store
 *.txt
