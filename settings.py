@@ -16,7 +16,7 @@ class Settings:
         self.bullet_height = 15
         self.bullet_color = (200, 60, 60)
         self.msg_color = (144, 238, 144)
-        self.bullets_count = 5
+        self.bullets_count = 10
 
         #Aliens settings
         self.fleet_drop_speed = 10
@@ -38,7 +38,7 @@ class Settings:
         self.lost = "LOST"
 
     def initialize_dynamic_settings(self):
-        self.ship_speed = 2
+        self.ship_speed = 1.5
         self.bullet_speed = 1.2
         self.alien_speed = 0.02
 

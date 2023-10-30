@@ -12,8 +12,8 @@ class Sensor:
         self.settings = Settings()
         self.settings.sensor_settings()
         self.device_name = device_name
-        self.threshold = 1e3
         self.device_mode = device_name+self.settings.device_mode
+        self.thresholds = {'zcr':10,'mav':50,'rms':10} # Tested thresholds : {'zcr':10,'mav':50,'rms':10}
         
     def _initialise(self):
         explorer = explorepy.Explore()
@@ -40,24 +40,55 @@ class Sensor:
                 filtered_data = filter.get_output()
                 difference_buffer[:,0] = np.abs(filtered_data[int(self.settings.buffer_size*0.4):,0] - filtered_data[int(self.settings.buffer_size*0.4):,1])
                 difference_buffer[:,1] = np.abs(filtered_data[int(self.settings.buffer_size*0.4),2] - filtered_data[int(self.settings.buffer_size*0.4):,3])
-                left_sum = np.sum(difference_buffer[:,0])
-                right_sum = np.sum(difference_buffer[:,1])
-                print(f'Left:{left_sum} Right:{right_sum}')
-                if left_sum-right_sum > self.threshold:
-                    keyboard.release(Key.left)
-                    keyboard.press(Key.right)
-                    print("Moving Left")
-                elif right_sum-left_sum > self.threshold:
-                    keyboard.release(Key.right)
-                    keyboard.press(Key.left)
-                    print("Moving Right")
-                else:
-                    print("Staying still")
+                ## Classify the single channel(Uncomment if commented to work with 1 channel, Always keep one commented)
+                self._comparator(filtered_data[int(self.settings.buffer_size*0.4):,:],keyboard,channels=[0,2])
+                # ## Classify the second channel(Uncomment if commented to work with 2 channel, Always keep one commented)
+                # self._comparator(difference_buffer,keyboard,channels=[0,1])
+    
+    def _get_zero_crossing_rate(self,signal):
+        zcr = 0
+        for i in range(1,len(signal)):
+            if (signal[i-1] >= 0) and (signal[i] < 0) or (signal[i-1] < 0) and (signal[i] >= 0):
+                zcr += 1
+        return zcr
+    
+    def root_mean_square(self,signal):
+        rms = np.sqrt(np.mean(np.square(signal)))
+        return rms
+    
+    def mean_absolute_value(self,signal):
+        mav = np.mean(np.abs(signal))
+        return mav
+    
+    def _get_value_dict(self,signal):
+        return {'zcr':self._get_zero_crossing_rate(signal),'rms':self.root_mean_square(signal),'mav':self.mean_absolute_value(signal)}
 
-            
+    def _comparator(self,input_matrix,keyboard,params =['rms','mav'],channels = [0,1]):
+        left_dict = self._get_value_dict(input_matrix[:,channels[0]])
+        right_dict = self._get_value_dict(input_matrix[:,channels[1]])
+        conditions_fulfiled = 0
+        for val in params:
+            if left_dict[val] - right_dict[val] >= self.thresholds[val]:
+                conditions_fulfiled+=1
+            elif right_dict[val] - left_dict[val] >= self.thresholds[val]:
+                conditions_fulfiled-=1
+        if conditions_fulfiled == len(params):
+            keyboard.release(Key.right)
+            keyboard.press(Key.left)
+            # keyboard.tap(Key.left)
+            print("Moving Left")
+        elif conditions_fulfiled == -1*len(params):
+            keyboard.release(Key.left)
+            keyboard.press(Key.right)
+            # keyboard.tap(Key.right)
+            print("Moving Right")
+        else:
+            keyboard.release(Key.right)
+            keyboard.release(Key.left)
+            print("Standing Still")
 
 if __name__ == '__main__':
     #   Make a game instance
-    sensor = Sensor("Explore_8443")
+    sensor = Sensor("Explore_8441")
     sensor._initialise()
     sensor._get_data()
