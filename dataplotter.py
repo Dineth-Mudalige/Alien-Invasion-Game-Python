@@ -11,7 +11,6 @@ class DataPlotter:
         self.settings = Settings()
         self.settings.sensor_settings()
         self.device_name = device_name
-        self.threshold = 2e6
         self.device_mode = device_name + self.settings.device_mode
 
     def _initialise(self):
@@ -57,6 +56,17 @@ class DataPlotter:
 
                     raw_ax.plot(buffer[:, i], color='blue')
                     filtered_ax.plot(filtered_data[:, i], color='red')
+                    filtered_ax.set_ylim(-400,400)
+
+                    # Calculate ZCR, RMS, and MAV for the filtered data
+                    values = self._get_value_dict(filtered_data[int(self.settings.buffer_size*0.4):,i])
+
+                    # Display ZCR, RMS, and MAV values below the filtered data plot
+                    filtered_ax.text(0.5, -0.15, f"ZCR: {values['zcr']:.2f} RMS: {values['rms']:.2f} MAV: {values['mav']:.2f}",
+                                    horizontalalignment='center',
+                                    verticalalignment='center',
+                                    transform=filtered_ax.transAxes
+                                    )
 
                     # Add a vertical dashed line in the filtered subplot
                     vertical_line_index = self.settings.buffer_size*0.4  # Adjust this index as needed
@@ -69,8 +79,25 @@ class DataPlotter:
                 fig.canvas.flush_events()
 
                 plt.pause(0.1)
+    def _get_zero_crossing_rate(self,signal):
+        zcr = 0
+        for i in range(1,len(signal)):
+            if (signal[i-1] > 0) and (signal[i] < 0) or (signal[i-1] < 0) and (signal[i] > 0):
+                zcr += 1
+        return zcr
+    
+    def root_mean_square(self,signal):
+        rms = np.sqrt(np.mean(np.square(signal)))
+        return rms
+    
+    def mean_absolute_value(self,signal):
+        mav = np.mean(np.abs(signal))
+        return mav
+    
+    def _get_value_dict(self,signal):
+        return {'zcr':self._get_zero_crossing_rate(signal),'rms':self.root_mean_square(signal),'mav':self.mean_absolute_value(signal)}
 
 if __name__ == '__main__':
-    sensor = DataPlotter("Explore_8443")
+    sensor = DataPlotter("Explore_8441")
     sensor._initialise()
     sensor._get_data()
